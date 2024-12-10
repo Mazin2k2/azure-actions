@@ -1,13 +1,15 @@
-provider "azurerm" {
-  features {}
+resource "azurerm_resource_group" "rg" {
+  name     = var.resource_group_name
+  location = var.location
 }
 
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "terraform-backend-rg"
-    storage_account_name = "terraformstorageacc"
-    container_name       = "tfstate"
-    key                  = "terraform.tfstate"
-  }
+module "network" {
+  source = "./network"
 }
 
+module "aks" {
+  source = "./aks-cluster"
+  rg_name          = azurerm_resource_group.rg.name
+  location         = azurerm_resource_group.rg.location
+  vnet_subnet_id   = module.network.subnet_id
+}
